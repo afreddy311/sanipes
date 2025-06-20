@@ -9,8 +9,8 @@ imagen_ruta = 'C:/dev/Filusi/sanipes/imagenes/Min de la prod.png'
 imagen_ruta2 = 'C:/dev/Filusi/sanipes/imagenes/Sanipes.png'
 
 # Cargar el archivo existente y la plantilla
-archivo_origen = load_workbook('C:/dev/Filusi/sanipes/excels/03 MARZO 2025.xlsx')
-hoja_origen = archivo_origen['INGRESOS SERIE 001']
+archivo_origen = load_workbook('C:/dev/Filusi/sanipes/excels/05 MAYO 2025.xlsx',data_only=True)
+hoja_origen = archivo_origen['INGRESOS SERIE 002']
 
 archivo_destino = load_workbook('C:/dev/Filusi/sanipes/excels/PLANTILLA.xlsx')
 hoja_plantilla = archivo_destino['923']
@@ -50,8 +50,11 @@ def ajustar_imagen2(imagen, celda_inicio, celda_fin, hoja):
     imagen.anchor = celda_inicio
 
 
-def desglosar_fecha(fecha_str):
-    fecha = datetime.datetime.strptime(fecha_str, "%d.%m.%Y")
+def desglosar_fecha(fecha_input):
+    if isinstance(fecha_input, datetime.datetime):
+        fecha = fecha_input
+    else:
+        fecha = datetime.datetime.strptime(fecha_input, "%d/%m/%Y")
     return fecha.day, fecha.month, fecha.year
 
 # Función para copiar valores y estilos (con fondo blanco por defecto)
@@ -82,9 +85,11 @@ def copiar_estilos_plantilla(celda_destino, celda_plantilla):
 # Crear nuevas hojas basadas en datos de la columna especificada
 columna_valores = hoja_origen['H']
 for celda in columna_valores:
-    if celda.value and isinstance(celda.value, (int, float)):
-        valor_celda = str(celda.value)
+    valor = celda.value
 
+    if isinstance(valor, str) and valor.strip().isdigit():
+        valor_celda = valor.strip()
+    
         # Crear una nueva hoja copiando la plantilla
         hoja_destino = archivo_destino.copy_worksheet(hoja_plantilla)
         hoja_destino.title = valor_celda
@@ -97,16 +102,18 @@ for celda in columna_valores:
 
         # Agregar datos desde la hoja de origen a posiciones específicas
         fila = hoja_origen[celda.row]
-        fecha_str = fila[0].value
+        fecha_str = fila[1].value
         if fecha_str:
             dia, mes, año = desglosar_fecha(fecha_str)
             hoja_destino['M9'] = dia
             hoja_destino['N9'] = mes
             hoja_destino['O9'] = año
 
-        hoja_destino['H22'] = fila[1].value
-        hoja_destino['H24'] = fila[2].value
-        hoja_destino['H26'] = fila[3].value
+        hoja_destino['H22'] = fila[2].value
+        hoja_destino['H24'] = fila[3].value
+        # hoja_destino['H26'] = fila[3].value
+        hoja_destino['F26'] = ""
+        hoja_destino['D26'] = ""
         hoja_destino['N7'] = fila[7].value
         hoja_destino['G28'] = fila[8].value
 
@@ -125,6 +132,6 @@ for celda in columna_valores:
 del archivo_destino['923']
 
 # Guardar el archivo de destino
-archivo_destino.save('MARZO SERIE 001.xlsx')
+archivo_destino.save('MAYO SERIE 002.xlsx')
 
 print("Hojas creadas y valores copiados exitosamente.")
